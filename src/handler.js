@@ -17,8 +17,48 @@ async function handleMessage(sock, msg) {
     let db = loadDB()
     db[idUser] = db[idUser] || {}
 
-    // ================= AFK CEK DIRI SENDIRI =================
-    if (db[idUser]?.afk && !body.startsWith(prefix + "afk")) {
+    // ================= COMMAND =================
+    if (body.startsWith(prefix)) {
+      const args = body.slice(prefix.length).trim().split(/ +/)
+      const command = args.shift().toLowerCase()
+
+      switch (command) {
+
+        case "afk":
+          require("../command/afk").run(sock, msg, args)
+        break
+
+        case "menu":
+          require("../command/menu").run(sock, msg)
+        break
+
+        case "claim":
+          require("../command/claim").run(sock, msg)
+        break
+
+        case "daily":
+          require("../command/daily").run(sock, msg)
+        break
+
+        case "profile":
+          require("../command/profile").run(sock, msg)
+        break
+
+        case "ping":
+          require("../command/ping").run(sock, msg)
+        break
+
+        case "rvo":
+          require("../command/rvo").run(sock, msg)
+        break
+
+      }
+
+      return // ⛔ penting
+    }
+
+    // ================= AFK BALIK =================
+    if (db[idUser]?.afk) {
       const afkTime = Date.now() - db[idUser].afk.time
 
       const seconds = Math.floor(afkTime / 1000) % 60
@@ -36,7 +76,7 @@ async function handleMessage(sock, msg) {
       saveDB(db)
     }
 
-    // ================= CEK ORANG YANG DI TAG =================
+    // ================= CEK TAG ORANG AFK =================
     const mention = msg.message?.extendedTextMessage?.contextInfo?.mentionedJid || []
 
     for (let jid of mention) {
@@ -57,44 +97,6 @@ async function handleMessage(sock, msg) {
           mentions: [jid]
         }, { quoted: msg })
       }
-    }
-
-    // ================= COMMAND =================
-    if (!body.startsWith(prefix)) return
-
-    const args = body.slice(prefix.length).trim().split(/ +/)
-    const command = args.shift().toLowerCase()
-
-    switch (command) {
-
-      case "menu":
-        require("../command/menu").run(sock, msg)
-      break
-
-      case "claim":
-        require("../command/claim").run(sock, msg)
-      break
-
-      case "daily":
-        require("../command/daily").run(sock, msg)
-      break
-
-      case "profile":
-        require("../command/profile").run(sock, msg)
-      break
-
-      case "ping":
-        require("../command/ping").run(sock, msg)
-      break
-
-      case "rvo":
-        require("../command/rvo").run(sock, msg)
-      break
-
-      case "afk":
-        require("../command/afk").run(sock, msg, args)
-      break
-
     }
 
   } catch (err) {
