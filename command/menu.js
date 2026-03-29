@@ -37,9 +37,9 @@ module.exports = {
 ╰──|─❍
 ╭──❍「 MENU 」❍
 │➤ .claim
+│➤ .daily
 │➤ .ping
 │➤ .rvo
-|➤ .daily
 ╰────❍`
 
     await sendFakeDoc(sock, sender, teks, ucapan, [sender])
