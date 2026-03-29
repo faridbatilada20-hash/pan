@@ -41,6 +41,7 @@ module.exports = {
 │➤ .daily
 │➤ .ping
 │➤ .rvo
+│➤ .profile
 ╰────❍`
 
     // 🔥 kirim fake pdf + foto user
