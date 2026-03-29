@@ -1,29 +1,50 @@
-const fs = require("fs")
-const path = require("path")
-const config = require("../config")
-
-const commands = {}
-
-// load semua command
-const commandFiles = fs.readdirSync(path.join(__dirname, "../command"))
-for (const file of commandFiles) {
-  const cmd = require(`../command/${file}`)
-  commands[cmd.name] = cmd
-}
+const { loadDB, saveDB, addUser } = require("./database")
 
 async function handleMessage(sock, msg) {
-  const body =
-    msg.message?.conversation ||
-    msg.message?.extendedTextMessage?.text ||
-    ""
+  try {
+    const from = msg.key.remoteJid
+    const sender = msg.key.participant || msg.key.remoteJid
+    const id = sender.split("@")[0]
 
-  if (!body.startsWith(config.prefix)) return
+    const body =
+      msg.message?.conversation ||
+      msg.message?.extendedTextMessage?.text ||
+      ""
 
-  const args = body.slice(config.prefix.length).trim().split(/ +/)
-  const command = args.shift().toLowerCase()
+    if (!body.startsWith(".")) return
 
-  if (commands[command]) {
-    commands[command].run(sock, msg, args)
+    const command = body.slice(1).trim().split(" ")[0].toLowerCase()
+
+    addUser(id)
+
+    // ================== COMMAND ==================
+    switch (command) {
+
+      case "menu":
+        require("../command/menu").run(sock, msg)
+      break
+
+      case "claim":
+        require("../command/claim").run(sock, msg)
+      break
+
+      // 🔥 INI YANG KAMU MAU (DITAMBAHIN DOANG)
+      case "daily":
+        require("../command/daily").run(sock, msg)
+      break
+
+      case "ping":
+        require("../command/ping").run(sock, msg)
+      break
+
+      case "rvo":
+        require("../command/rvo").run(sock, msg)
+      break
+
+    }
+
+  } catch (err) {
+    console.log(err)
   }
 }
 
