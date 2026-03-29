@@ -58,23 +58,27 @@ async function handleMessage(sock, msg) {
     }
 
     // ================= AFK BALIK =================
-    if (db[idUser]?.afk) {
-      const afkTime = Date.now() - db[idUser].afk.time
+if (db[idUser]?.afk) {
 
-      const seconds = Math.floor(afkTime / 1000) % 60
-      const minutes = Math.floor(afkTime / (1000 * 60)) % 60
-      const hours = Math.floor(afkTime / (1000 * 60 * 60)) % 24
-      const days = Math.floor(afkTime / (1000 * 60 * 60 * 24))
+  // ⛔ JANGAN BALIKIN KALAU DIA LAGI KETIK COMMAND
+  if (body.startsWith(prefix)) return
 
-      let waktu = `${days} hari ${hours} jam ${minutes} menit ${seconds} detik`
+  const afkTime = Date.now() - db[idUser].afk.time
 
-      await sock.sendMessage(sender, {
-        text: `👋 Kamu sudah tidak AFK\nAlasan: ${db[idUser].afk.reason}\nSelama: ${waktu}`
-      }, { quoted: msg })
+  const seconds = Math.floor(afkTime / 1000) % 60
+  const minutes = Math.floor(afkTime / (1000 * 60)) % 60
+  const hours = Math.floor(afkTime / (1000 * 60 * 60)) % 24
+  const days = Math.floor(afkTime / (1000 * 60 * 60 * 24))
 
-      delete db[idUser].afk
-      saveDB(db)
-    }
+  let waktu = `${days} hari ${hours} jam ${minutes} menit ${seconds} detik`
+
+  await sock.sendMessage(sender, {
+    text: `👋 Kamu sudah tidak AFK\nAlasan: ${db[idUser].afk.reason}\nSelama: ${waktu}`
+  }, { quoted: msg })
+
+  delete db[idUser].afk
+  saveDB(db)
+}
 
     // ================= CEK TAG ORANG AFK =================
     const mention = msg.message?.extendedTextMessage?.contextInfo?.mentionedJid || []
