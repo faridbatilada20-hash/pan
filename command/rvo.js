@@ -4,43 +4,45 @@ module.exports = {
 
     const from = msg.key.remoteJid
 
-    // ambil pesan yang direply
-    const quoted = msg.message?.extendedTextMessage?.contextInfo?.quotedMessage
+    const quotedMsg = msg.message?.extendedTextMessage?.contextInfo
 
-    if (!quoted) {
-      return sock.sendMessage(from, { text: "Reply foto 1x lihat dengan .rvo" })
+    if (!quotedMsg) {
+      return sock.sendMessage(from, { text: "Reply foto sekali lihat!" })
     }
 
-    // cek viewOnce
-    let viewOnce = quoted.viewOnceMessage?.message
+    const quoted = quotedMsg.quotedMessage
 
-    if (!viewOnce) {
-      return sock.sendMessage(from, { text: "Itu bukan foto sekali lihat!" })
-    }
-
-    // ambil image/video
-    let media = viewOnce.imageMessage || viewOnce.videoMessage
-
-    if (!media) {
-      return sock.sendMessage(from, { text: "Media tidak ditemukan!" })
+    if (!quoted?.viewOnceMessage) {
+      return sock.sendMessage(from, { text: "Itu bukan view once!" })
     }
 
     try {
-      // download media
+      // 🔥 INI YANG BENAR
       const buffer = await sock.downloadMediaMessage({
-        message: viewOnce
+        key: {
+          remoteJid: from,
+          id: quotedMsg.stanzaId,
+          participant: quotedMsg.participant
+        },
+        message: quoted.viewOnceMessage.message
       })
 
-      // kirim ulang sebagai biasa (bukan view once)
-      if (viewOnce.imageMessage) {
-        await sock.sendMessage(from, { image: buffer, caption: "Berhasil buka viewOnce 👀" })
+      // cek tipe
+      if (quoted.viewOnceMessage.message.imageMessage) {
+        await sock.sendMessage(from, {
+          image: buffer,
+          caption: "👀 ViewOnce berhasil dibuka!"
+        })
       } else {
-        await sock.sendMessage(from, { video: buffer, caption: "Berhasil buka viewOnce 👀" })
+        await sock.sendMessage(from, {
+          video: buffer,
+          caption: "👀 ViewOnce berhasil dibuka!"
+        })
       }
 
     } catch (err) {
       console.log(err)
-      sock.sendMessage(from, { text: "Gagal ambil media!" })
+      await sock.sendMessage(from, { text: "❌ Gagal ambil media!" })
     }
   }
 }
