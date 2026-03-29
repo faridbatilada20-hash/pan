@@ -18,7 +18,7 @@ async function handleMessage(sock, msg) {
     db[idUser] = db[idUser] || {}
 
     // ================= AFK CEK DIRI SENDIRI =================
-    if (db[idUser]?.afk) {
+    if (db[idUser]?.afk && !body.startsWith(prefix + "afk")) {
       const afkTime = Date.now() - db[idUser].afk.time
 
       const seconds = Math.floor(afkTime / 1000) % 60
