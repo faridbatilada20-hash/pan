@@ -1,31 +1,30 @@
 const fs = require("fs")
-const path = "./database/users.json"
+const path = require("path")
+const config = require("../config")
 
-if (!fs.existsSync("./database")) {
-  fs.mkdirSync("./database")
+const commands = {}
+
+// load semua command
+const commandFiles = fs.readdirSync(path.join(__dirname, "../command"))
+for (const file of commandFiles) {
+  const cmd = require(`../command/${file}`)
+  commands[cmd.name] = cmd
 }
 
-if (!fs.existsSync(path)) {
-  fs.writeFileSync(path, JSON.stringify({}))
-}
+async function handleMessage(sock, msg) {
+  const body =
+    msg.message?.conversation ||
+    msg.message?.extendedTextMessage?.text ||
+    ""
 
-function loadDB() {
-  return JSON.parse(fs.readFileSync(path))
-}
+  if (!body.startsWith(config.prefix)) return
 
-function saveDB(db) {
-  fs.writeFileSync(path, JSON.stringify(db, null, 2))
-}
+  const args = body.slice(config.prefix.length).trim().split(/ +/)
+  const command = args.shift().toLowerCase()
 
-function addUser(id) {
-  let db = loadDB()
-  if (!db[id]) {
-    db[id] = {
-      uang: 0,
-      lastClaim: 0
-    }
-    saveDB(db)
+  if (commands[command]) {
+    commands[command].run(sock, msg, args)
   }
 }
 
-module.exports = { loadDB, saveDB, addUser }
+module.exports = { handleMessage }
