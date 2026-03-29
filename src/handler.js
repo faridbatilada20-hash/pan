@@ -1,23 +1,20 @@
-const { loadDB, saveDB, addUser } = require("./database")
+const fs = require("fs")
+const path = require("path")
+const config = require("../config")
 
 async function handleMessage(sock, msg) {
   try {
-    const from = msg.key.remoteJid
-    const sender = msg.key.participant || msg.key.remoteJid
-    const id = sender.split("@")[0]
-
     const body =
       msg.message?.conversation ||
       msg.message?.extendedTextMessage?.text ||
       ""
 
-    if (!body.startsWith(".")) return
+    const prefix = config.prefix
+    if (!body.startsWith(prefix)) return
 
-    const command = body.slice(1).trim().split(" ")[0].toLowerCase()
+    const args = body.slice(prefix.length).trim().split(/ +/)
+    const command = args.shift().toLowerCase()
 
-    addUser(id)
-
-    // ================== COMMAND ==================
     switch (command) {
 
       case "menu":
@@ -28,9 +25,12 @@ async function handleMessage(sock, msg) {
         require("../command/claim").run(sock, msg)
       break
 
-      // 🔥 INI YANG KAMU MAU (DITAMBAHIN DOANG)
       case "daily":
         require("../command/daily").run(sock, msg)
+      break
+
+      case "profile":
+        require("../command/profile").run(sock, msg)
       break
 
       case "ping":
@@ -44,7 +44,7 @@ async function handleMessage(sock, msg) {
     }
 
   } catch (err) {
-    console.log(err)
+    console.log("Error handler:", err)
   }
 }
 
