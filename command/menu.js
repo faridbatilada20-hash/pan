@@ -7,8 +7,9 @@ module.exports = {
   run: async (sock, msg) => {
 
     const sender = msg.key.remoteJid
+    const user = msg.key.participant || msg.key.remoteJid
     const pushName = msg.pushName || "User"
-    const idUser = sender.split("@")[0]
+    const idUser = user.split("@")[0]
 
     addUser(idUser)
     let db = loadDB()
@@ -42,6 +43,7 @@ module.exports = {
 │➤ .rvo
 ╰────❍`
 
-    await sendFakeDoc(sock, sender, teks, ucapan, [sender])
+    // 🔥 kirim fake pdf + foto user
+    await sendFakeDoc(sock, sender, teks, ucapan, user)
   }
-}
+  }
