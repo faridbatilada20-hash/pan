@@ -17,10 +17,13 @@ async function handleMessage(sock, msg) {
     let db = loadDB()
     db[idUser] = db[idUser] || {}
 
+    // ================= DETECT COMMAND (ANTI BUG) =================
+    const isCommand = body && body.startsWith(prefix)
+    const args = isCommand ? body.slice(prefix.length).trim().split(/ +/) : []
+    const command = isCommand ? args.shift().toLowerCase() : ""
+
     // ================= COMMAND =================
-    if (body.startsWith(prefix)) {
-      const args = body.slice(prefix.length).trim().split(/ +/)
-      const command = args.shift().toLowerCase()
+    if (isCommand) {
 
       switch (command) {
 
@@ -54,31 +57,28 @@ async function handleMessage(sock, msg) {
 
       }
 
-      return // ⛔ penting
+      return // ⛔ penting biar gak lanjut ke AFK
     }
 
-    // ================= AFK BALIK =================
-if (db[idUser]?.afk) {
+    // ================= AFK BALIK (FIX TOTAL) =================
+    if (db[idUser]?.afk) {
 
-  // ⛔ JANGAN BALIKIN KALAU DIA LAGI KETIK COMMAND
-  if (body.startsWith(prefix)) return
+      const afkTime = Date.now() - db[idUser].afk.time
 
-  const afkTime = Date.now() - db[idUser].afk.time
+      const seconds = Math.floor(afkTime / 1000) % 60
+      const minutes = Math.floor(afkTime / (1000 * 60)) % 60
+      const hours = Math.floor(afkTime / (1000 * 60 * 60)) % 24
+      const days = Math.floor(afkTime / (1000 * 60 * 60 * 24))
 
-  const seconds = Math.floor(afkTime / 1000) % 60
-  const minutes = Math.floor(afkTime / (1000 * 60)) % 60
-  const hours = Math.floor(afkTime / (1000 * 60 * 60)) % 24
-  const days = Math.floor(afkTime / (1000 * 60 * 60 * 24))
+      let waktu = `${days} hari ${hours} jam ${minutes} menit ${seconds} detik`
 
-  let waktu = `${days} hari ${hours} jam ${minutes} menit ${seconds} detik`
+      await sock.sendMessage(sender, {
+        text: `👋 Kamu sudah tidak AFK\nAlasan: ${db[idUser].afk.reason}\nSelama: ${waktu}`
+      }, { quoted: msg })
 
-  await sock.sendMessage(sender, {
-    text: `👋 Kamu sudah tidak AFK\nAlasan: ${db[idUser].afk.reason}\nSelama: ${waktu}`
-  }, { quoted: msg })
-
-  delete db[idUser].afk
-  saveDB(db)
-}
+      delete db[idUser].afk
+      saveDB(db)
+    }
 
     // ================= CEK TAG ORANG AFK =================
     const mention = msg.message?.extendedTextMessage?.contextInfo?.mentionedJid || []
